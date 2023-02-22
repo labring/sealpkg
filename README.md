@@ -67,3 +67,7 @@ fi
   # kube 1.26-2x(cri-dockerd v0.3.x)
   until curl -sLo "docker.tgz" "https://download.docker.com/linux/static/stable/$ALIAS_ARCH/docker-$DOCKER.tgz"; do sleep 3; done
 ```
+
+5. goproxy
+
+https://ghproxy.com/
