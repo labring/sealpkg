@@ -1,12 +1,13 @@
 package v1
 
 type RuntimeConfigDefaultComponent struct {
-	Containerd string `json:"containerd"`
-	Docker     string `json:"docker"`
-	CRIDocker  string `json:"cri-docker"`
-	Sealos     string `json:"sealos"`
-	CRIO       string `json:"crio"`
-	CRIOCrun   string `json:"crio-crun"`
+	Containerd  string `json:"containerd"`
+	Docker      string `json:"docker"`
+	CRIDockerV3 string `json:"cri-docker-v3"`
+	CRIDockerV2 string `json:"cri-docker-v2"`
+	Sealos      string `json:"sealos"`
+	CRIO        string `json:"crio"`
+	CRIOCrun    string `json:"crio-crun"`
 }
 
 type RuntimeConfigData struct {

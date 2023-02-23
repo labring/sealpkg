@@ -1,14 +1,6 @@
 # runtime-ctl
 
-1. 1.26
-```shell
-# Check support for kube-v1.26+
-if [[ "${KUBE_XY//./}" -ge 126 ]] && [[ "${SEALOS_XYZ//./}" -le 413 ]] && [[ -z "$sealosPatch" ]]; then
-  echo "INFO::skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)"
-  echo https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal
-  exit
-fi
-```
+
 2. docker
 ```shell
 IMAGE_KUBE=kubernetes-$CRI_TYPE
@@ -26,33 +18,6 @@ IMAGE_KUBE=kubernetes-$CRI_TYPE
     sudo cp -au "$MOUNT_CRI/cri/docker.tgz" cri/
     ;;
   esac
-```
-3. manifest
-```shell
-if [[ "${kube_major//./}" -ge 126 ]]; then
-  if ! [[ "${sealos_major//./}" -le 413 ]] || [[ -n "$sealosPatch" ]]; then
-    echo "Verifying the availability of unstable"
-  else
-    echo "INFO::skip kube(>=1.26) building when sealos <= 4.1.3"
-    exit
-  fi
-  FROM_CRI=$(sudo buildah from "$IMAGE_CACHE_NAME:cri-amd64")
-  MOUNT_CRI=$(sudo buildah mount "$FROM_CRI")
-  case $CRI_TYPE in
-  containerd)
-    if ! [[ "$(sudo cat "$MOUNT_CRI"/cri/.versions | grep CONTAINERD | awk -F= '{print $NF}')" =~ v1\.([6-9]|[0-9][0-9])\.[0-9]+ ]]; then
-      echo https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal
-      exit
-    fi
-    ;;
-  docker)
-    if ! [[ "$(sudo cat "$MOUNT_CRI"/cri/.versions | grep CRIDOCKER | awk -F= '{print $NF}')" =~ v0\.[3-9]\.[0-9]+ ]]; then
-      echo https://github.com/Mirantis/cri-dockerd/issues/125
-      exit
-    fi
-    ;;
-  esac
-fi
 ```
 
 4. docker

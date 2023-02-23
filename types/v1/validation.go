@@ -1,6 +1,10 @@
 package v1
 
-import "fmt"
+import (
+	"fmt"
+	"k8s.io/klog/v2"
+	"strings"
+)
 
 func ValidationDefaultComponent(c *RuntimeConfigDefaultComponent) error {
 	if c.CRIO == "" {
@@ -12,8 +16,11 @@ func ValidationDefaultComponent(c *RuntimeConfigDefaultComponent) error {
 	if c.Docker == "" {
 		return fmt.Errorf("docker default version is empty,please retry config it")
 	}
-	if c.CRIDocker == "" {
-		return fmt.Errorf("cri-docker default version is empty,please retry config it")
+	if c.CRIDockerV2 == "" {
+		return fmt.Errorf("cri-docker v2 default version is empty,please retry config it")
+	}
+	if c.CRIDockerV3 == "" {
+		return fmt.Errorf("cri-docker v3 default version is empty,please retry config it")
 	}
 	if c.Containerd == "" {
 		return fmt.Errorf("containerd default version is empty,please retry config it")
@@ -35,4 +42,46 @@ func ValidationConfigData(c *RuntimeConfigData) error {
 		return fmt.Errorf("runtime version not set,please retry config it")
 	}
 	return nil
+}
+
+func ValidationRuntimeConfig(c *RuntimeConfig) error {
+	if c.Config.Runtime == "k8s" {
+		//kubernetes gt 1.26
+		if Compare(c.Config.RuntimeVersion, "v1.26") && !Compare(c.Default.Sealos, "v4.1.3") {
+			// echo "INFO::skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)"
+			//  echo https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal
+			klog.Info("Please see https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal")
+			return fmt.Errorf("skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)")
+		}
+	}
+	return nil
+}
+
+// Compare is version compare
+// if v1 >= v2 return true, else return false
+func Compare(v1, v2 string) bool {
+	v1 = strings.Replace(v1, "v", "", -1)
+	v2 = strings.Replace(v2, "v", "", -1)
+	v1 = strings.Split(v1, "-")[0]
+	v2 = strings.Split(v2, "-")[0]
+	v1List := strings.Split(v1, ".")
+	v2List := strings.Split(v2, ".")
+	if v1List[0] > v2List[0] {
+		return true
+	} else if v1List[0] < v2List[0] {
+		return false
+	}
+	if v1List[1] > v2List[1] {
+		return true
+	} else if v1List[1] < v2List[1] {
+		return false
+	}
+	if len(v1List) == 3 && len(v2List) == 3 {
+		if v1List[2] >= v2List[2] {
+			return true
+		}
+		return false
+	}
+
+	return true
 }

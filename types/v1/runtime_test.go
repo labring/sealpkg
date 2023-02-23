@@ -40,7 +40,7 @@ func Test_NewRuntimeDefaultFromFile(t *testing.T) {
 default:
   containerd: 1.5.0
   docker: 1.5.0
-  cri-docker: 1.5.0
+  cri-docker-v2: 1.5.0
   sealos: 4.1.5-rc1
   crio: 1.2.0
   crio-crun: 1.0.0
