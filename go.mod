@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/imdario/mergo v0.3.13
+	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.6.1
 	k8s.io/apimachinery v0.26.1
 	k8s.io/klog/v2 v2.80.1

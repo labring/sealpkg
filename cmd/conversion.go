@@ -16,28 +16,39 @@ package cmd
 
 import (
 	"github.com/labring-actions/runtime-ctl/pkg/apply"
+	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
 )
 
 var conversionFiles []string
+var defaultFile string
+var applier *apply.Applier
 
 // conversionCmd represents the conversion command
 var conversionCmd = &cobra.Command{
 	Use:   "conversion",
 	Short: "conversion runtime cri and release version",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		applier, err := apply.NewApplier(conversionFiles...)
-		if err != nil {
-			return err
-		}
 		return applier.Apply()
+	},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		applier = apply.NewApplier()
+		if err := applier.WithDefaultFile(defaultFile); err != nil {
+			return errors.WithMessage(err, "validate default error")
+		}
+		if err := applier.WithConfigFiles(conversionFiles...); err != nil {
+			return errors.WithMessage(err, "validate config error")
+		}
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(conversionCmd)
-	conversionCmd.Flags().StringSliceVarP(&conversionFiles, "files", "f", []string{}, "config and default file")
+	conversionCmd.Flags().StringSliceVarP(&conversionFiles, "files", "f", []string{}, "config files")
+	conversionCmd.Flags().StringVarP(&defaultFile, "default", "d", "", "default file location")
+
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

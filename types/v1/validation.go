@@ -42,6 +42,7 @@ func ValidationDefaultComponent(c *RuntimeConfigDefaultComponent) error {
 	if c.Sealos == "" {
 		return fmt.Errorf("sealos default version is empty,please retry config it")
 	}
+	klog.Info("validate default component success")
 	return nil
 }
 
@@ -55,6 +56,7 @@ func ValidationConfigData(c *RuntimeConfigData) error {
 	if c.RuntimeVersion == "" {
 		return fmt.Errorf("runtime version not set,please retry config it")
 	}
+	klog.Info("validate config data success")
 	return nil
 }
 
@@ -68,6 +70,7 @@ func ValidationRuntimeConfig(c *RuntimeConfig) error {
 			return fmt.Errorf("skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)")
 		}
 	}
+	klog.Info("validate runtime success")
 	return nil
 }
 
