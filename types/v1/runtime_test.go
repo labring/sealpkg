@@ -44,13 +44,6 @@ default:
   sealos: 4.1.5-rc1
   crio: 1.2.0
   crio-crun: 1.0.0
-  k8s:
-    containerd: 1.5.0
-    docker: 1.5.0
-    cri-docker: 1.5.0
-    sealos: main
-    crio: 1.2.0
-    crio-crun: 1.0.0
 `
 	c := &RuntimeConfig{}
 	err := yaml.Unmarshal([]byte(yConfig), c)

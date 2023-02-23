@@ -1,10 +1,5 @@
 package v1
 
-type RuntimeConfigDefault struct {
-	RuntimeConfigDefaultComponent
-	K8s *RuntimeConfigDefaultComponent
-}
-
 type RuntimeConfigDefaultComponent struct {
 	Containerd string `json:"containerd"`
 	Docker     string `json:"docker"`
@@ -21,6 +16,6 @@ type RuntimeConfigData struct {
 }
 
 type RuntimeConfig struct {
-	Config  *RuntimeConfigData    `json:"config,omitempty"`
-	Default *RuntimeConfigDefault `json:"default,omitempty"`
+	Config  *RuntimeConfigData             `json:"config,omitempty"`
+	Default *RuntimeConfigDefaultComponent `json:"default,omitempty"`
 }
