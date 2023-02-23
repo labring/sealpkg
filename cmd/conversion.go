@@ -15,29 +15,29 @@
 package cmd
 
 import (
-	"fmt"
+	"github.com/labring-actions/runtime-ctl/pkg/apply"
 
 	"github.com/spf13/cobra"
 )
 
+var conversionFiles []string
+
 // conversionCmd represents the conversion command
 var conversionCmd = &cobra.Command{
 	Use:   "conversion",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("conversion called")
+	Short: "conversion runtime cri and release version",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		applier, err := apply.NewApplier(conversionFiles...)
+		if err != nil {
+			return err
+		}
+		return applier.Apply()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(conversionCmd)
-
+	conversionCmd.Flags().StringSliceVarP(&conversionFiles, "files", "f", []string{}, "config and default file")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
