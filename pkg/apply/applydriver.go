@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/labring-actions/runtime-ctl/pkg/docker"
+	"github.com/labring-actions/runtime-ctl/pkg/k8s"
 	"github.com/labring-actions/runtime-ctl/pkg/merge"
 	v1 "github.com/labring-actions/runtime-ctl/types/v1"
 	"k8s.io/apimachinery/pkg/util/json"
@@ -103,7 +104,13 @@ func (a *Applier) Apply() error {
 			}
 			status.CRIDockerV2 = ""
 			status.CRIDockerV3 = ""
+			newVersion, err := k8s.FetchFinalVersion(status.RuntimeVersion)
+			if err != nil {
+				return fmt.Errorf("runtime is %s,runtime version is %s,get new version is error: %+v", status.Runtime, status.RuntimeVersion, err)
+			}
+			status.RuntimeVersion = newVersion
 			statusList.Include = append(statusList.Include, *status)
+
 		default:
 			return fmt.Errorf("not found runtime,current version not support")
 		}

@@ -15,4 +15,4 @@
 config:
   cri: docker
   runtime: k8s
-  runtimeVersion: 1.23.0
+  runtimeVersion: 1.23
