@@ -88,7 +88,12 @@ func (a *Applier) Apply() error {
 				RuntimeConfigData:             rt.Config,
 			}
 			status.Docker = dockerVersion
-			status.CRIDocker = criDockerVersion
+			switch criDockerVersion {
+			case docker.CRIDockerV2:
+				status.CRIDocker = status.CRIDockerV2
+			case docker.CRIDockerV3:
+				status.CRIDocker = status.CRIDockerV3
+			}
 			status.CRIDockerV2 = ""
 			status.CRIDockerV3 = ""
 			statusList.Include = append(statusList.Include, *status)
