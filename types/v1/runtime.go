@@ -26,13 +26,26 @@ type RuntimeConfigDefaultComponent struct {
 	Runc        string `json:"runc"`
 }
 
+const (
+	RuntimeK8s string = "k8s"
+)
+
 type RuntimeConfigData struct {
 	CRI            string `json:"cri"`
 	Runtime        string `json:"runtime"`
 	RuntimeVersion string `json:"runtimeVersion"`
 }
 
+type RuntimeStatus struct {
+	*RuntimeConfigDefaultComponent `json:",inline"`
+	*RuntimeConfigData             `json:",inline"`
+}
+
 type RuntimeConfig struct {
 	Config  *RuntimeConfigData             `json:"config,omitempty"`
 	Default *RuntimeConfigDefaultComponent `json:"default,omitempty"`
+}
+
+type RuntimeStatusList struct {
+	Include []RuntimeStatus `json:"include,omitempty"`
 }

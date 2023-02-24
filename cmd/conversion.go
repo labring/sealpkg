@@ -17,6 +17,7 @@ package cmd
 import (
 	"github.com/labring-actions/runtime-ctl/pkg/apply"
 	"github.com/pkg/errors"
+	"k8s.io/klog/v2"
 
 	"github.com/spf13/cobra"
 )
@@ -25,11 +26,7 @@ var conversionFiles []string
 var defaultFile string
 var applier *apply.Applier
 
-// conversionCmd represents the conversion command
-var conversionCmd = &cobra.Command{
-	Use:   "conversion",
-	Short: "conversion runtime cri and release version",
-	Long: `All Version:
+const printInfo = `All Version:
 	cri-docker: https://github.com/Mirantis/cri-dockerd/releases
 	docker: https://download.docker.com/linux/static/stable/
 	containerd: https://github.com/containerd/containerd/releases
@@ -37,11 +34,17 @@ var conversionCmd = &cobra.Command{
 	runc: https://github.com/opencontainers/runc/releases
 	sealos: https://github.com/labring/sealos/releases
 	crio: https://github.com/cri-o/cri-o/releases
-`,
+`
+
+// conversionCmd represents the conversion command
+var conversionCmd = &cobra.Command{
+	Use:   "conversion",
+	Short: "conversion runtime cri and release version",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return applier.Apply()
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		klog.Info(printInfo)
 		applier = apply.NewApplier()
 		if err := applier.WithDefaultFile(defaultFile); err != nil {
 			return errors.WithMessage(err, "validate default error")
