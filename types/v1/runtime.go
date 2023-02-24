@@ -22,7 +22,8 @@ type RuntimeConfigDefaultComponent struct {
 	CRIDocker   string `json:"cri-docker,omitempty"`
 	Sealos      string `json:"sealos"`
 	CRIO        string `json:"crio"`
-	CRIOCrun    string `json:"crio-crun"`
+	Crun        string `json:"crun"`
+	Runc        string `json:"runc"`
 }
 
 type RuntimeConfigData struct {

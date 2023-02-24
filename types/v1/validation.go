@@ -24,7 +24,7 @@ func ValidationDefaultComponent(c *RuntimeConfigDefaultComponent) error {
 	if c.CRIO == "" {
 		return fmt.Errorf("crio default version is empty,please retry config it")
 	}
-	if c.CRIOCrun == "" {
+	if c.Crun == "" {
 		return fmt.Errorf("crio-runc default version is empty,please retry config it")
 	}
 	if c.Docker == "" {

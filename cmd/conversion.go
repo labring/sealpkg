@@ -29,6 +29,15 @@ var applier *apply.Applier
 var conversionCmd = &cobra.Command{
 	Use:   "conversion",
 	Short: "conversion runtime cri and release version",
+	Long: `All Version:
+	cri-docker: https://github.com/Mirantis/cri-dockerd/releases
+	docker: https://download.docker.com/linux/static/stable/
+	containerd: https://github.com/containerd/containerd/releases
+	crun: https://github.com/containers/crun/releases
+	runc: https://github.com/opencontainers/runc/releases
+	sealos: https://github.com/labring/sealos/releases
+	crio: https://github.com/cri-o/cri-o/releases
+`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return applier.Apply()
 	},
