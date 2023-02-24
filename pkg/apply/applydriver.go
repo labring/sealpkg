@@ -21,6 +21,8 @@ import (
 	"github.com/labring-actions/runtime-ctl/pkg/merge"
 	v1 "github.com/labring-actions/runtime-ctl/types/v1"
 	"k8s.io/apimachinery/pkg/util/json"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/klog/v2"
 )
 
 type Applier struct {
@@ -52,25 +54,30 @@ func (a *Applier) WithConfigFiles(files ...string) error {
 	if len(files) <= 0 {
 		return errors.New("files not set,please set retry")
 	}
-	validationFunc := func(r *v1.RuntimeConfig) error {
+	validationFunc := func(index int, r *v1.RuntimeConfig) error {
 		if err := v1.ValidationConfigData(r.Config); err != nil {
 			return err
 		}
 		if err := v1.ValidationRuntimeConfig(r); err != nil {
 			return err
 		}
+		klog.Infof("validate index=%d config data and runtime success", index)
 		return nil
 	}
-
-	for _, f := range files {
+	versions := sets.NewString()
+	for i, f := range files {
 		cfg, err := merge.Merge(f, a.DefaultFile)
 		if err != nil {
 			return err
 		}
-		if err = validationFunc(cfg); err != nil {
+		if err = validationFunc(i, cfg); err != nil {
 			return fmt.Errorf("file is %s is validation error: %+v", f, err)
 		}
-		a.Runtimes = append(a.Runtimes, *cfg)
+		setKey := fmt.Sprintf("%s-%s", cfg.Config.Runtime, cfg.Config.RuntimeVersion)
+		if !versions.Has(setKey) {
+			versions.Insert(setKey)
+			a.Runtimes = append(a.Runtimes, *cfg)
+		}
 	}
 	return nil
 }
