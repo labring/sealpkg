@@ -46,14 +46,11 @@ func ValidationDefaultComponent(c *RuntimeConfigDefaultComponent) error {
 }
 
 func ValidationConfigData(c *RuntimeConfigData) error {
-	if c.CRI == "" {
-		return fmt.Errorf("cri not set,please retry config it")
-	}
 	if c.Runtime == "" {
 		return fmt.Errorf("runtime not set,please retry config it")
 	}
-	if c.RuntimeVersion == "" {
-		return fmt.Errorf("runtime version not set,please retry config it")
+	if len(c.RuntimeVersion) == 0 {
+		return fmt.Errorf("runtime versions not set,please retry config it")
 	}
 	return nil
 }
@@ -61,11 +58,13 @@ func ValidationConfigData(c *RuntimeConfigData) error {
 func ValidationRuntimeConfig(c *RuntimeConfig) error {
 	if c.Config.Runtime == "k8s" {
 		//kubernetes gt 1.26
-		if Compare(c.Config.RuntimeVersion, "v1.26") && !Compare(c.Default.Sealos, "v4.1.3") {
-			// echo "INFO::skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)"
-			//  echo https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal
-			klog.Info("Please see https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal")
-			return fmt.Errorf("skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)")
+		for _, v := range c.Config.RuntimeVersion {
+			if Compare(v, "v1.26") && !Compare(c.Default.Sealos, "v4.1.3") {
+				// echo "INFO::skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)"
+				//  echo https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal
+				klog.Info("Please see https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal")
+				return fmt.Errorf("skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)")
+			}
 		}
 	}
 	return nil

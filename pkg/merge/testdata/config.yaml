@@ -13,6 +13,9 @@
 # limitations under the License.
 
 config:
-  cri: docker
+  cri:
+    - docker
+    - containerd
   runtime: k8s
-  runtimeVersion: 1.23.0
+  runtimeVersion:
+    - 1.23.0

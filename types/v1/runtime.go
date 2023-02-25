@@ -27,18 +27,27 @@ type RuntimeConfigDefaultComponent struct {
 }
 
 const (
-	RuntimeK8s string = "k8s"
+	RuntimeK8s    string = "k8s"
+	CRIDocker     string = "docker"
+	CRIContainerd string = "containerd"
+	CRICRIO       string = "crio"
 )
 
 type RuntimeConfigData struct {
-	CRI            string `json:"cri"`
+	CRI            []string `json:"cri,omitempty"`
+	Runtime        string   `json:"runtime"`
+	RuntimeVersion []string `json:"runtimeVersion,omitempty"`
+}
+
+type RuntimeStatusConfigData struct {
+	CRI            string `json:"cri,omitempty"`
 	Runtime        string `json:"runtime"`
-	RuntimeVersion string `json:"runtimeVersion"`
+	RuntimeVersion string `json:"runtimeVersion,omitempty"`
 }
 
 type RuntimeStatus struct {
 	*RuntimeConfigDefaultComponent `json:",inline"`
-	*RuntimeConfigData             `json:",inline"`
+	*RuntimeStatusConfigData       `json:",inline"`
 }
 
 type RuntimeConfig struct {

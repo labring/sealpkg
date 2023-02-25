@@ -27,7 +27,7 @@ import (
 )
 
 type Applier struct {
-	Runtimes    []v1.RuntimeConfig
+	Runtimes    []v1.RuntimeStatus
 	DefaultFile string
 }
 
@@ -74,11 +74,26 @@ func (a *Applier) WithConfigFiles(files ...string) error {
 		if err = validationFunc(i, cfg); err != nil {
 			return fmt.Errorf("file is %s is validation error: %+v", f, err)
 		}
-		setKey := fmt.Sprintf("%s-%s", cfg.Config.Runtime, cfg.Config.RuntimeVersion)
-		if !versions.Has(setKey) {
-			versions.Insert(setKey)
-			a.Runtimes = append(a.Runtimes, *cfg)
+		if cfg.Config.CRI == nil || len(cfg.Config.CRI) == 0 {
+			cfg.Config.CRI = []string{v1.CRIContainerd, v1.CRIDocker, v1.CRICRIO}
 		}
+		for _, version := range cfg.Config.RuntimeVersion {
+			for _, cri := range cfg.Config.CRI {
+				setKey := fmt.Sprintf("%s-%s-%s", cri, cfg.Config.Runtime, version)
+				if !versions.Has(setKey) {
+					versions.Insert(setKey)
+					a.Runtimes = append(a.Runtimes, v1.RuntimeStatus{
+						RuntimeConfigDefaultComponent: cfg.Default,
+						RuntimeStatusConfigData: &v1.RuntimeStatusConfigData{
+							CRI:            cri,
+							Runtime:        cfg.Config.Runtime,
+							RuntimeVersion: version,
+						},
+					})
+				}
+			}
+		}
+
 	}
 	return nil
 }
@@ -87,34 +102,29 @@ func (a *Applier) Apply() error {
 	statusList := &v1.RuntimeStatusList{
 		Include: []v1.RuntimeStatus{},
 	}
-	for _, rt := range a.Runtimes {
-		switch rt.Config.Runtime {
+	for i, rt := range a.Runtimes {
+		switch rt.Runtime {
 		case v1.RuntimeK8s:
-			dockerVersion, criDockerVersion := docker.FetchVersion(rt.Config.RuntimeVersion)
-			status := &v1.RuntimeStatus{
-				RuntimeConfigDefaultComponent: rt.Default,
-				RuntimeConfigData:             rt.Config,
-			}
-			status.Docker = dockerVersion
+			dockerVersion, criDockerVersion := docker.FetchVersion(rt.RuntimeVersion)
+			a.Runtimes[i].Docker = dockerVersion
 			switch criDockerVersion {
 			case docker.CRIDockerV2:
-				status.CRIDocker = status.CRIDockerV2
+				a.Runtimes[i].CRIDocker = a.Runtimes[i].CRIDockerV2
 			case docker.CRIDockerV3:
-				status.CRIDocker = status.CRIDockerV3
+				a.Runtimes[i].CRIDocker = a.Runtimes[i].CRIDockerV3
 			}
-			status.CRIDockerV2 = ""
-			status.CRIDockerV3 = ""
-			newVersion, err := k8s.FetchFinalVersion(status.RuntimeVersion)
+			a.Runtimes[i].CRIDockerV2 = ""
+			a.Runtimes[i].CRIDockerV3 = ""
+			newVersion, err := k8s.FetchFinalVersion(rt.RuntimeVersion)
 			if err != nil {
-				return fmt.Errorf("runtime is %s,runtime version is %s,get new version is error: %+v", status.Runtime, status.RuntimeVersion, err)
+				return fmt.Errorf("runtime is %s,runtime version is %s,get new version is error: %+v", rt.Runtime, rt.RuntimeVersion, err)
 			}
-			status.RuntimeVersion = newVersion
-			statusList.Include = append(statusList.Include, *status)
-
+			a.Runtimes[i].RuntimeVersion = newVersion
 		default:
 			return fmt.Errorf("not found runtime,current version not support")
 		}
 	}
+	statusList.Include = a.Runtimes
 	actionJSON, err := json.Marshal(statusList)
 	if err != nil {
 		return err
