@@ -24,6 +24,7 @@ import (
 
 var conversionFiles []string
 var defaultFile string
+var yamlEnable bool
 var applier *apply.Applier
 
 const printInfo = `All Version:
@@ -52,7 +53,7 @@ var conversionCmd = &cobra.Command{
 		if err := applier.WithConfigFiles(conversionFiles...); err != nil {
 			return errors.WithMessage(err, "validate config error")
 		}
-		return nil
+		return applier.WithYaml(yamlEnable)
 	},
 }
 
@@ -60,6 +61,7 @@ func init() {
 	rootCmd.AddCommand(conversionCmd)
 	conversionCmd.Flags().StringSliceVarP(&conversionFiles, "files", "f", []string{}, "config files")
 	conversionCmd.Flags().StringVarP(&defaultFile, "default", "d", "", "default file location")
+	conversionCmd.Flags().BoolVar(&yamlEnable, "yaml", false, "print yaml")
 
 	// Here you will define your flags and configuration settings.
 

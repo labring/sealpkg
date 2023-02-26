@@ -15,7 +15,7 @@ builds:
       - amd64
       - arm64
     ldflags:
-      - -s -w -X github.com/labring-actions/runtime-ctl/cmd.Version={{.Version}} -X github.com/labring-actions/runtime-ctl/cmd.Githash={{.ShortCommit}} -X github.com/labring-actions/runtime-ctl/cmd.Buildstamp={{.Date}} -X github.com/labring-actions/runtime-ctl/cmd.Author=goreleaser
+      - -s -w -X github.com/labring-actions/runtime-ctl/pkg/cmd.Version={{.Version}} -X github.com/labring-actions/runtime-ctl/pkg/cmd.Githash={{.ShortCommit}} -X github.com/labring-actions/runtime-ctl/pkg/cmd.Buildstamp={{.Date}} -X github.com/labring-actions/runtime-ctl/cmd.Author=goreleaser
 
 #archives:
 #  - replacements:

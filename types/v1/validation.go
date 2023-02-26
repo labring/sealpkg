@@ -20,21 +20,12 @@ import (
 	"strings"
 )
 
-func ValidationDefaultComponent(c *RuntimeConfigDefaultComponent) error {
-	if c.CRIO == "" {
-		return fmt.Errorf("crio default version is empty,please retry config it")
-	}
+func ValidationDefaultComponent(c *RuntimeDefaultComponent) error {
 	if c.Crun == "" {
 		return fmt.Errorf("crio-runc default version is empty,please retry config it")
 	}
 	if c.Docker == "" {
 		return fmt.Errorf("docker default version is empty,please retry config it")
-	}
-	if c.CRIDockerV2 == "" {
-		return fmt.Errorf("cri-docker v2 default version is empty,please retry config it")
-	}
-	if c.CRIDockerV3 == "" {
-		return fmt.Errorf("cri-docker v3 default version is empty,please retry config it")
 	}
 	if c.Containerd == "" {
 		return fmt.Errorf("containerd default version is empty,please retry config it")
@@ -59,7 +50,7 @@ func ValidationRuntimeConfig(c *RuntimeConfig) error {
 	if c.Config.Runtime == "k8s" {
 		//kubernetes gt 1.26
 		for _, v := range c.Config.RuntimeVersion {
-			if Compare(v, "v1.26") && !Compare(c.Default.Sealos, "v4.1.3") {
+			if Compare(v, "v1.26") && !Compare(c.Version.Sealos, "v4.1.3") {
 				// echo "INFO::skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)"
 				//  echo https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal
 				klog.Info("Please see https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal")

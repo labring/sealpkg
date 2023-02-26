@@ -17,18 +17,21 @@ package apply
 import (
 	"errors"
 	"fmt"
-	"github.com/labring-actions/runtime-ctl/pkg/docker"
+	"github.com/labring-actions/runtime-ctl/pkg/cri"
 	"github.com/labring-actions/runtime-ctl/pkg/k8s"
 	"github.com/labring-actions/runtime-ctl/pkg/merge"
 	v1 "github.com/labring-actions/runtime-ctl/types/v1"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/yaml"
 )
 
 type Applier struct {
-	Runtimes    []v1.RuntimeStatus
-	DefaultFile string
+	StatusComponents []v1.RuntimeStatusComponent
+	RuntimeConfigs   []v1.RuntimeConfig
+	DefaultFile      string
+	Yaml             bool
 }
 
 func NewApplier() *Applier {
@@ -43,12 +46,16 @@ func (a *Applier) WithDefaultFile(file string) error {
 	if err != nil {
 		return err
 	}
-	if err = v1.ValidationDefaultComponent(cfg.Default); err != nil {
+	if err = v1.ValidationDefaultComponent(cfg.Version); err != nil {
 		return err
 	}
 	a.DefaultFile = file
 	return nil
+}
 
+func (a *Applier) WithYaml(yamlEnable bool) error {
+	a.Yaml = yamlEnable
+	return nil
 }
 
 func (a *Applier) WithConfigFiles(files ...string) error {
@@ -77,19 +84,20 @@ func (a *Applier) WithConfigFiles(files ...string) error {
 		if cfg.Config.CRI == nil || len(cfg.Config.CRI) == 0 {
 			cfg.Config.CRI = []string{v1.CRIContainerd, v1.CRIDocker, v1.CRICRIO}
 		}
-		for _, version := range cfg.Config.RuntimeVersion {
-			for _, cri := range cfg.Config.CRI {
-				setKey := fmt.Sprintf("%s-%s-%s", cri, cfg.Config.Runtime, version)
+		for _, v := range cfg.Config.RuntimeVersion {
+			for _, r := range cfg.Config.CRI {
+				setKey := fmt.Sprintf("%s-%s-%s", r, cfg.Config.Runtime, v)
 				if !versions.Has(setKey) {
 					versions.Insert(setKey)
-					a.Runtimes = append(a.Runtimes, v1.RuntimeStatus{
-						RuntimeConfigDefaultComponent: cfg.Default,
-						RuntimeStatusConfigData: &v1.RuntimeStatusConfigData{
-							CRI:            cri,
-							Runtime:        cfg.Config.Runtime,
-							RuntimeVersion: version,
-						},
-					})
+					rt := v1.RuntimeStatusComponent{
+						CRIType:        r,
+						Runtime:        cfg.Config.Runtime,
+						RuntimeVersion: v,
+					}
+					rt.CRIRuntime, rt.CRIRuntimeVersion = cri.CRIRuntime(r, *cfg.Version)
+					rt.Sealos = cfg.Version.Sealos
+					a.StatusComponents = append(a.StatusComponents, rt)
+					a.RuntimeConfigs = append(a.RuntimeConfigs, *cfg)
 				}
 			}
 		}
@@ -99,32 +107,43 @@ func (a *Applier) WithConfigFiles(files ...string) error {
 }
 
 func (a *Applier) Apply() error {
-	statusList := &v1.RuntimeStatusList{
-		Include: []v1.RuntimeStatus{},
-	}
-	for i, rt := range a.Runtimes {
+	statusList := &v1.RuntimeStatusList{}
+	for i, rt := range a.StatusComponents {
+		localRuntime := a.StatusComponents[i]
 		switch rt.Runtime {
 		case v1.RuntimeK8s:
-			dockerVersion, criDockerVersion := docker.FetchVersion(rt.RuntimeVersion)
-			a.Runtimes[i].Docker = dockerVersion
-			switch criDockerVersion {
-			case docker.CRIDockerV2:
-				a.Runtimes[i].CRIDocker = a.Runtimes[i].CRIDockerV2
-			case docker.CRIDockerV3:
-				a.Runtimes[i].CRIDocker = a.Runtimes[i].CRIDockerV3
+			switch rt.CRIType {
+			case v1.CRIDocker:
+				dockerVersion, criDockerVersion := cri.FetchVersion(rt.RuntimeVersion)
+				if dockerVersion != "" {
+					localRuntime.CRIVersion = dockerVersion
+				} else {
+					localRuntime.CRIVersion = a.RuntimeConfigs[i].Version.Docker
+				}
+				localRuntime.CRIDockerd = criDockerVersion
+			case v1.CRIContainerd:
+				localRuntime.CRIVersion = a.RuntimeConfigs[i].Version.Containerd
 			}
-			a.Runtimes[i].CRIDockerV2 = ""
-			a.Runtimes[i].CRIDockerV3 = ""
+
 			newVersion, err := k8s.FetchFinalVersion(rt.RuntimeVersion)
 			if err != nil {
 				return fmt.Errorf("runtime is %s,runtime version is %s,get new version is error: %+v", rt.Runtime, rt.RuntimeVersion, err)
 			}
-			a.Runtimes[i].RuntimeVersion = newVersion
+			a.StatusComponents[i].RuntimeVersion = newVersion
 		default:
 			return fmt.Errorf("not found runtime,current version not support")
 		}
+		a.StatusComponents[i] = localRuntime
 	}
-	statusList.Include = a.Runtimes
+	statusList.Include = a.StatusComponents
+	if a.Yaml {
+		actionYAML, err := yaml.Marshal(statusList)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(actionYAML))
+		return nil
+	}
 	actionJSON, err := json.Marshal(statusList)
 	if err != nil {
 		return err

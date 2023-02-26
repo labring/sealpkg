@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker
+package cri
 
-import v1 "github.com/labring-actions/runtime-ctl/types/v1"
-
-const (
-	CRIDockerV2 = "v0.2.x"
-	CRIDockerV3 = "v0.3.x"
+import (
+	"github.com/labring-actions/runtime-ctl/pkg/version"
+	v1 "github.com/labring-actions/runtime-ctl/types/v1"
 )
 
 func FetchVersion(kubeVersion string) (string, string) {
@@ -26,13 +24,13 @@ func FetchVersion(kubeVersion string) (string, string) {
 	switch {
 	//# kube 1.16(docker-18.09)
 	case !v1.Compare(kubeVersion, "v1.17"):
-		dockerVersion = "18.09"
+		dockerVersion = version.Docker18
 	//# kube 1.17-20(docker-19.03)
 	case v1.Compare(kubeVersion, "v1.17") && !v1.Compare(kubeVersion, "v1.21"):
-		dockerVersion = "19.03"
+		dockerVersion = version.Docker19
 	//kube 1.21-23(docker-20.10)
 	case v1.Compare(kubeVersion, "v1.21") && !v1.Compare(kubeVersion, "v1.24"):
-		dockerVersion = "20.10"
+		dockerVersion = version.Docker20
 	default:
 		dockerVersion = ""
 	}
@@ -41,10 +39,10 @@ func FetchVersion(kubeVersion string) (string, string) {
 	switch {
 	//# kube 1.1x-25(cri-dockerd v0.2.x)
 	case !v1.Compare(kubeVersion, "v1.26"):
-		dockerCRIVersion = CRIDockerV2
+		dockerCRIVersion = version.CRIDockerd2x
 	//# kube 1.26-2x(cri-dockerd v0.3.x)
 	case v1.Compare(kubeVersion, "v1.26"):
-		dockerCRIVersion = CRIDockerV3
+		dockerCRIVersion = version.CRIDockerd3x
 	}
 
 	return dockerVersion, dockerCRIVersion

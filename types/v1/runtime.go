@@ -14,16 +14,23 @@
 
 package v1
 
-type RuntimeConfigDefaultComponent struct {
-	Containerd  string `json:"containerd"`
-	Docker      string `json:"docker"`
-	CRIDockerV3 string `json:"cri-docker-v3,omitempty"`
-	CRIDockerV2 string `json:"cri-docker-v2,omitempty"`
-	CRIDocker   string `json:"cri-docker,omitempty"`
-	Sealos      string `json:"sealos"`
-	CRIO        string `json:"crio"`
-	Crun        string `json:"crun"`
-	Runc        string `json:"runc"`
+type RuntimeDefaultComponent struct {
+	Containerd string `json:"containerd"`
+	Docker     string `json:"docker"`
+	Sealos     string `json:"sealos"`
+	Crun       string `json:"crun"`
+	Runc       string `json:"runc"`
+}
+
+type RuntimeStatusComponent struct {
+	CRIType           string `json:"criType"`
+	CRIVersion        string `json:"criVersion"`
+	CRIDockerd        string `json:"criDockerd,omitempty"`
+	CRIRuntime        string `json:"criRuntime"`
+	CRIRuntimeVersion string `json:"criRuntimeVersion"`
+	Sealos            string `json:"sealos"`
+	Runtime           string `json:"runtime"`
+	RuntimeVersion    string `json:"runtimeVersion"`
 }
 
 const (
@@ -39,22 +46,11 @@ type RuntimeConfigData struct {
 	RuntimeVersion []string `json:"runtimeVersion,omitempty"`
 }
 
-type RuntimeStatusConfigData struct {
-	CRI            string `json:"cri,omitempty"`
-	Runtime        string `json:"runtime"`
-	RuntimeVersion string `json:"runtimeVersion,omitempty"`
-}
-
-type RuntimeStatus struct {
-	*RuntimeConfigDefaultComponent `json:",inline"`
-	*RuntimeStatusConfigData       `json:",inline"`
-}
-
 type RuntimeConfig struct {
-	Config  *RuntimeConfigData             `json:"config,omitempty"`
-	Default *RuntimeConfigDefaultComponent `json:"default,omitempty"`
+	Config  *RuntimeConfigData       `json:"config,omitempty"`
+	Version *RuntimeDefaultComponent `json:"version,omitempty"`
 }
 
 type RuntimeStatusList struct {
-	Include []RuntimeStatus `json:"include,omitempty"`
+	Include []RuntimeStatusComponent `json:"include,omitempty"`
 }
