@@ -114,7 +114,7 @@ func (a *Applier) Apply() error {
 		case v1.RuntimeK8s:
 			switch rt.CRIType {
 			case v1.CRIDocker:
-				dockerVersion, criDockerVersion := cri.FetchVersion(rt.RuntimeVersion)
+				dockerVersion, criDockerVersion := cri.FetchDockerVersion(rt.RuntimeVersion)
 				if dockerVersion != "" {
 					localRuntime.CRIVersion = dockerVersion
 				} else {

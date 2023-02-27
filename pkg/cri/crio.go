@@ -16,4 +16,61 @@ limitations under the License.
 
 package cri
 
-const crioAddress = "https://raw.githubusercontent.com/cri-o/cri-o/gh-pages/README.md"
+import (
+	"github.com/PuerkitoBio/goquery"
+	"github.com/labring-actions/runtime-ctl/pkg/utils"
+	v1 "github.com/labring-actions/runtime-ctl/types/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/client-go/util/retry"
+	"k8s.io/klog/v2"
+	"strings"
+)
+
+func FetchCRIOAllVersion() (map[string]sets.Set[string], error) {
+	const crioAddress = "https://cri-o.github.io/cri-o/"
+	versions := make(map[string]sets.Set[string])
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		data, err := utils.Request(crioAddress, "GET", []byte(""), 0)
+		if err != nil {
+			return err
+		}
+
+		doc, err := goquery.NewDocumentFromReader(strings.NewReader(string(data)))
+		if err != nil {
+			return err
+		}
+		ahtml := doc.Find("a")
+		for _, html := range ahtml.Nodes {
+			attr := html.Attr
+			if len(attr) > 0 {
+				if strings.Contains(attr[0].Val, "cri-o") && !strings.Contains(attr[0].Val, "dependencies.html") {
+					//docker-18.09.2.tgz
+					tmpVal := strings.ReplaceAll(attr[0].Val, "/cri-o/", "")
+					tmpVal = strings.ReplaceAll(tmpVal, ".html", "")
+					tmpVal = strings.ReplaceAll(tmpVal, "v", "")
+					if strings.Contains(tmpVal, "-") {
+						continue
+					}
+					if !v1.Compare(tmpVal, "1.20") {
+						continue
+					}
+					if len(strings.Split(tmpVal, ".")) < 3 {
+						continue
+					}
+					//versions = append(versions, tmpVal)
+					bigVersion := strings.Join(strings.Split(tmpVal, ".")[:2], ".")
+					if _, ok := versions[bigVersion]; !ok {
+						versions[bigVersion] = sets.New(tmpVal)
+					} else {
+						versions[bigVersion].Insert(tmpVal)
+					}
+				}
+			}
+		}
+		return nil
+	}); err != nil {
+		klog.Error("get docker version error: %s", err.Error())
+		return nil, err
+	}
+	return versions, nil
+}

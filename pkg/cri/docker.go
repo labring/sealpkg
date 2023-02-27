@@ -15,11 +15,17 @@
 package cri
 
 import (
+	"github.com/PuerkitoBio/goquery"
+	"github.com/labring-actions/runtime-ctl/pkg/utils"
 	"github.com/labring-actions/runtime-ctl/pkg/version"
 	v1 "github.com/labring-actions/runtime-ctl/types/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/client-go/util/retry"
+	"k8s.io/klog/v2"
+	"strings"
 )
 
-func FetchVersion(kubeVersion string) (string, string) {
+func FetchDockerVersion(kubeVersion string) (string, string) {
 	var dockerVersion string
 	switch {
 	//# kube 1.16(docker-18.09)
@@ -46,4 +52,45 @@ func FetchVersion(kubeVersion string) (string, string) {
 	}
 
 	return dockerVersion, dockerCRIVersion
+}
+
+func FetchDockerAllVersion() (map[string]sets.Set[string], error) {
+	fetchURL := "https://download.docker.com/linux/static/stable/x86_64/"
+	versions := make(map[string]sets.Set[string])
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		data, err := utils.Request(fetchURL, "GET", []byte(""), 0)
+		if err != nil {
+			return err
+		}
+
+		doc, err := goquery.NewDocumentFromReader(strings.NewReader(string(data)))
+		if err != nil {
+			return err
+		}
+		ahtml := doc.Find("a")
+		for _, html := range ahtml.Nodes {
+			attr := html.Attr
+			if len(attr) > 0 {
+				if strings.Contains(attr[0].Val, "docker") && !strings.Contains(attr[0].Val, "rootless") && !strings.Contains(attr[0].Val, "ce") {
+					//docker-18.09.2.tgz
+					tmpVal := strings.ReplaceAll(attr[0].Val, "docker-", "")
+					tmpVal = strings.ReplaceAll(tmpVal, ".tgz", "")
+					if len(strings.Split(tmpVal, ".")) < 3 {
+						continue
+					}
+					bigVersion := strings.Join(strings.Split(tmpVal, ".")[:2], ".")
+					if _, ok := versions[bigVersion]; !ok {
+						versions[bigVersion] = sets.New(tmpVal)
+					} else {
+						versions[bigVersion].Insert(tmpVal)
+					}
+				}
+			}
+		}
+		return nil
+	}); err != nil {
+		klog.Error("get docker version error: %s", err.Error())
+		return nil, err
+	}
+	return versions, nil
 }
