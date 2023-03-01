@@ -32,6 +32,7 @@ type Applier struct {
 	RuntimeConfigs   []v1.RuntimeConfig
 	DefaultFile      string
 	Yaml             bool
+	Sync             *cri.Sync
 }
 
 func NewApplier() *Applier {
@@ -49,7 +50,20 @@ func (a *Applier) WithDefaultFile(file string) error {
 	if err = v1.ValidationDefaultComponent(cfg.Version); err != nil {
 		return err
 	}
+	const printInfo = `All Default Version:
+	docker: %s
+	containerd: %s
+	sealos: %s
+	crun: %s
+	runc: %s
+`
+	klog.Infof(printInfo, cfg.Version.Docker, cfg.Version.Containerd, cfg.Version.Sealos, cfg.Version.Crun, cfg.Version.Runc)
 	a.DefaultFile = file
+	return nil
+}
+
+func (a *Applier) WithCRISync(sync *cri.Sync) error {
+	a.Sync = sync
 	return nil
 }
 
@@ -112,17 +126,33 @@ func (a *Applier) Apply() error {
 		localRuntime := a.StatusComponents[i]
 		switch rt.Runtime {
 		case v1.RuntimeK8s:
+			kubeBigVersion := v1.ToBigVersion(rt.RuntimeVersion)
 			switch rt.CRIType {
 			case v1.CRIDocker:
 				dockerVersion, criDockerVersion := cri.FetchDockerVersion(rt.RuntimeVersion)
 				if dockerVersion != "" {
 					localRuntime.CRIVersion = dockerVersion
 				} else {
-					localRuntime.CRIVersion = a.RuntimeConfigs[i].Version.Docker
+					cfgDocker := a.RuntimeConfigs[i].Version.Docker
+					localRuntime.CRIVersion = v1.ToBigVersion(cfgDocker)
 				}
+				versions := a.Sync.Docker[localRuntime.CRIVersion]
+				sortList := cri.List(versions)
+				newVersion := sortList[len(sortList)-1]
+				klog.Infof("docker version is %s, docker using latest version: %s", localRuntime.CRIVersion, newVersion)
+				localRuntime.CRIVersion = newVersion
 				localRuntime.CRIDockerd = criDockerVersion
 			case v1.CRIContainerd:
 				localRuntime.CRIVersion = a.RuntimeConfigs[i].Version.Containerd
+				containerdBigVersion := v1.ToBigVersion(a.RuntimeConfigs[i].Version.Containerd)
+				if v1.Compare(kubeBigVersion, "1.26") && !v1.Compare(containerdBigVersion, "1.6") {
+					return fmt.Errorf("if kubernetes version gt 1.26 your containerd must be gt 1.6")
+				}
+			case v1.CRICRIO:
+				versions := a.Sync.CRIO[kubeBigVersion]
+				sortList := cri.List(versions)
+				newVersion := sortList[len(sortList)-1]
+				klog.Infof("kube version is %s, crio using latest version: %s", rt.RuntimeVersion, newVersion)
 			}
 
 			newVersion, err := k8s.FetchFinalVersion(rt.RuntimeVersion)

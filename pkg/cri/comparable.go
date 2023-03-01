@@ -23,25 +23,6 @@ import (
 	"strings"
 )
 
-//type Version string
-//
-//type VersionList []Version
-//
-//func (a VersionList) Len() int { return len(a) }
-//
-//func (a VersionList) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-//
-//func (a VersionList) Less(i, j int) bool {
-//	left := a[i]
-//	right := a[j]
-//
-//	lstr := strings.Split(string(left), ".")[2]
-//	rstr := strings.Split(string(right), ".")[2]
-//	lint, _ := strconv.Atoi(lstr)
-//	rint, _ := strconv.Atoi(rstr)
-//	return lint < rint
-//}
-
 // List returns the contents as a sorted T slice.
 //
 // This is a separate function and not a method because not all types supported

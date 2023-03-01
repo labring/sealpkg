@@ -13,9 +13,9 @@
 # limitations under the License.
 
 version:
-  containerd: 1.6.16
-  docker: 20.10
-  sealos: 4.1.5-rc1
-  crun: 1.8
-  runc: 1.1.4
-  ctl: 0.0.2
+  containerd: "1.6.16"
+  docker: "20.10"
+  sealos: "4.1.5-rc1"
+  crun: "1.8"
+  runc: "1.1.4"
+  ctl: "0.0.2"

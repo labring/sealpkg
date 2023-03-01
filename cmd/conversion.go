@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"github.com/labring-actions/runtime-ctl/pkg/apply"
+	"github.com/labring-actions/runtime-ctl/pkg/cri"
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
 
@@ -53,6 +54,17 @@ var conversionCmd = &cobra.Command{
 		if err := applier.WithConfigFiles(conversionFiles...); err != nil {
 			return errors.WithMessage(err, "validate config error")
 		}
+		klog.Info("begin sync cri all versions")
+		s := &cri.Sync{}
+		if err := s.Do(); err != nil {
+			return errors.WithMessage(err, "sync cri error")
+		}
+		klog.Info("sync cri all versions finished")
+
+		if err := applier.WithCRISync(s); err != nil {
+			return errors.WithMessage(err, "set sync cri error")
+		}
+
 		return applier.WithYaml(yamlEnable)
 	},
 }

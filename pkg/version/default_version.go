@@ -19,7 +19,7 @@ package version
 const (
 	CRIDockerd3x = "0.3.1"
 	CRIDockerd2x = "0.2.6"
-	Docker19     = "19.03.15"
-	Docker18     = "18.09.9"
-	Docker20     = "20.10.23"
+	Docker19     = "19.03"
+	Docker18     = "18.09"
+	Docker20     = "20.10"
 )

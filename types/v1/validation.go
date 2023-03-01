@@ -89,3 +89,10 @@ func Compare(v1, v2 string) bool {
 
 	return true
 }
+
+func ToBigVersion(v string) string {
+	v = strings.Replace(v, "v", "", -1)
+	v1List := strings.Split(v, ".")
+	return strings.Join(v1List[:2], ".")
+
+}
