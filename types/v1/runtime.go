@@ -1,6 +1,6 @@
 // Copyright © 2023 sealos.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, DefaultVersion 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -14,7 +14,9 @@
 
 package v1
 
-type RuntimeDefaultComponent struct {
+import "k8s.io/apimachinery/pkg/util/json"
+
+type ComponentDefaultVersion struct {
 	Containerd string `json:"containerd"`
 	Docker     string `json:"docker"`
 	Sealos     string `json:"sealos"`
@@ -22,12 +24,12 @@ type RuntimeDefaultComponent struct {
 	Runc       string `json:"runc"`
 }
 
-type RuntimeStatusComponent struct {
+type ComponentAndVersion struct {
 	CRIType           string `json:"criType"`
 	CRIVersion        string `json:"criVersion"`
 	CRIDockerd        string `json:"criDockerd,omitempty"`
-	CRIRuntime        string `json:"criRuntime"`
-	CRIRuntimeVersion string `json:"criRuntimeVersion"`
+	CRIRuntime        string `json:"criRuntime,omitempty"`
+	CRIRuntimeVersion string `json:"criRuntimeVersion,omitempty"`
 	Sealos            string `json:"sealos"`
 	Runtime           string `json:"runtime"`
 	RuntimeVersion    string `json:"runtimeVersion"`
@@ -40,17 +42,22 @@ const (
 	CRICRIO       string = "crio"
 )
 
-type RuntimeConfigData struct {
+type RuntimeAndCRI struct {
 	CRI            []string `json:"cri,omitempty"`
 	Runtime        string   `json:"runtime"`
 	RuntimeVersion []string `json:"runtimeVersion,omitempty"`
 }
 
 type RuntimeConfig struct {
-	Config  *RuntimeConfigData       `json:"config,omitempty"`
-	Version *RuntimeDefaultComponent `json:"version,omitempty"`
+	Config         *RuntimeAndCRI           `json:"config,omitempty"`
+	DefaultVersion *ComponentDefaultVersion `json:"defaultVersion,omitempty"`
 }
 
-type RuntimeStatusList struct {
-	Include []RuntimeStatusComponent `json:"include,omitempty"`
+func (r *RuntimeConfig) String() string {
+	data, _ := json.Marshal(r)
+	return string(data)
+}
+
+type RuntimeList struct {
+	Include []ComponentAndVersion `json:"include,omitempty"`
 }

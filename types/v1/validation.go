@@ -1,6 +1,6 @@
 // Copyright © 2023 sealos.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, DefaultVersion 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -16,11 +16,10 @@ package v1
 
 import (
 	"fmt"
-	"k8s.io/klog/v2"
 	"strings"
 )
 
-func ValidationDefaultComponent(c *RuntimeDefaultComponent) error {
+func ValidationDefaultComponent(c *ComponentDefaultVersion) error {
 	if c.Crun == "" {
 		return fmt.Errorf("crio-runc default version is empty,please retry config it")
 	}
@@ -36,7 +35,7 @@ func ValidationDefaultComponent(c *RuntimeDefaultComponent) error {
 	return nil
 }
 
-func ValidationConfigData(c *RuntimeConfigData) error {
+func ValidationConfigData(c *RuntimeAndCRI) error {
 	if c.Runtime == "" {
 		return fmt.Errorf("runtime not set,please retry config it")
 	}
@@ -46,15 +45,19 @@ func ValidationConfigData(c *RuntimeConfigData) error {
 	return nil
 }
 
-func ValidationRuntimeConfig(c *RuntimeConfig) error {
-	if c.Config.Runtime == "k8s" {
+func CheckSealosAndRuntime(c *RuntimeAndCRI, vv *ComponentDefaultVersion) error {
+	if c.Runtime == "k8s" {
 		//kubernetes gt 1.26
-		for _, v := range c.Config.RuntimeVersion {
-			if Compare(v, "v1.26") && !Compare(c.Version.Sealos, "v4.1.3") {
+		for _, v := range c.RuntimeVersion {
+			if Compare(v, "v1.26") && !Compare(vv.Sealos, "v4.1.4") {
 				// echo "INFO::skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)"
 				//  echo https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal
-				klog.Info("Please see https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal")
 				return fmt.Errorf("skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)")
+			}
+			if Compare(v, "v1.27") && !Compare(vv.Sealos, "v4.2.0") {
+				// echo "INFO::skip $KUBE(kube>=1.27) when $SEALOS(sealos<4.2.0)"
+				//  echo https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal
+				return fmt.Errorf("skip $KUBE(kube>=1.27) when $SEALOS(sealos< 4.2.0)")
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 /*
 Copyright 2023 cuisongliu@qq.com.
 
-Licensed under the Apache License, Version 2.0 (the "License");
+Licensed under the Apache License, DefaultVersion 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
@@ -18,10 +18,10 @@ package cri
 
 import v1 "github.com/labring-actions/runtime-ctl/types/v1"
 
-func CRIRuntime(cri string, component v1.RuntimeDefaultComponent) (string, string) {
+func GetCRIRuntime(cri string, component v1.ComponentDefaultVersion) (string, string) {
 	switch cri {
 	case "docker":
-		return "runc", component.Runc
+		return "", ""
 	case "crio":
 		return "crun", component.Crun
 	case "containerd":

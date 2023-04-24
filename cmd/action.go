@@ -1,6 +1,6 @@
 // Copyright © 2023 sealos.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, DefaultVersion 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -28,7 +28,7 @@ var defaultFile string
 var yamlEnable bool
 var applier *apply.Applier
 
-const printInfo = `All Version:
+const printInfo = `All DefaultVersion:
 	cri-docker: https://github.com/Mirantis/cri-dockerd/releases
 	docker: https://download.docker.com/linux/static/stable/
 	containerd: https://github.com/containerd/containerd/releases
@@ -40,8 +40,9 @@ const printInfo = `All Version:
 
 // conversionCmd represents the conversion command
 var conversionCmd = &cobra.Command{
-	Use:   "conversion",
-	Short: "conversion runtime cri and release version",
+	Use:     "action",
+	Aliases: []string{"a"},
+	Short:   "github action output runtime cri and release version",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return applier.Apply()
 	},
