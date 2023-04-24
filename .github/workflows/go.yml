@@ -29,4 +29,4 @@ jobs:
 
       - name: Test conversion
         run: |
-          dist/runtime-ctl_linux_amd64_v1/runtime-ctl conversion  -f pkg/merge/testdata/config.yaml -f pkg/merge/testdata/config-2.yaml  -d pkg/merge/testdata/default.yaml --yaml
+          dist/runtime-ctl_linux_amd64_v1/runtime-ctl a  -f pkg/merge/testdata/config.yaml -f pkg/merge/testdata/config-2.yaml  -d pkg/merge/testdata/default.yaml --yaml
