@@ -17,14 +17,15 @@ package apply
 import (
 	"errors"
 	"fmt"
+	"github.com/cuisongliu/logger"
 	"github.com/labring-actions/runtime-ctl/pkg/cri"
 	"github.com/labring-actions/runtime-ctl/pkg/k8s"
 	"github.com/labring-actions/runtime-ctl/pkg/merge"
 	v1 "github.com/labring-actions/runtime-ctl/types/v1"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/klog/v2"
 	"sigs.k8s.io/yaml"
+	"strings"
 )
 
 type Applier struct {
@@ -50,14 +51,14 @@ func (a *Applier) WithDefaultFile(file string) error {
 	if err = v1.ValidationDefaultComponent(cfg.DefaultVersion); err != nil {
 		return err
 	}
-	const printInfo = `All Default DefaultVersion:
+	const printInfo = `All Default Version:
 	docker: %s
 	containerd: %s
 	sealos: %s
 	crun: %s
 	runc: %s
 `
-	klog.Infof(printInfo, cfg.DefaultVersion.Docker, cfg.DefaultVersion.Containerd, cfg.DefaultVersion.Sealos, cfg.DefaultVersion.Crun, cfg.DefaultVersion.Runc)
+	logger.Info(printInfo, cfg.DefaultVersion.Docker, cfg.DefaultVersion.Containerd, cfg.DefaultVersion.Sealos, cfg.DefaultVersion.Crun, cfg.DefaultVersion.Runc)
 	a.DefaultFile = file
 	return nil
 }
@@ -80,7 +81,7 @@ func (a *Applier) WithConfigFiles(files ...string) error {
 		if err := v1.ValidationConfigData(r.Config); err != nil {
 			return err
 		}
-		klog.Infof("validate index=%d config data and runtime success", index)
+		logger.Debug("validate index=%d config data and runtime success", index)
 		return nil
 	}
 	versions := sets.NewString()
@@ -98,6 +99,15 @@ func (a *Applier) WithConfigFiles(files ...string) error {
 			cfg.Config.CRI = []string{v1.CRIContainerd, v1.CRIDocker, v1.CRICRIO}
 		}
 	}
+	const printInfo = `All Config:
+	cri: %s
+	runtime: %s
+	versions: %s
+`
+	cris := fmt.Sprintf("[%s]", strings.Join(cfg.Config.CRI, ","))
+	runtimeVersions := fmt.Sprintf("[%s]", strings.Join(cfg.Config.RuntimeVersion, ","))
+	logger.Info(printInfo, cris, cfg.Config.Runtime, runtimeVersions)
+
 	for _, v := range cfg.Config.RuntimeVersion {
 		for _, r := range cfg.Config.CRI {
 			setKey := fmt.Sprintf("%s-%s-%s", r, cfg.Config.Runtime, v)
@@ -110,14 +120,17 @@ func (a *Applier) WithConfigFiles(files ...string) error {
 				}
 				rt.CRIRuntime, rt.CRIRuntimeVersion = cri.GetCRIRuntime(r, *cfg.DefaultVersion)
 				rt.Sealos = cfg.DefaultVersion.Sealos
-
 				if err = v1.CheckSealosAndRuntime(cfg.Config, cfg.DefaultVersion); err != nil {
-					klog.Warningf("check sealos and runtime error: %+v", err)
+					logger.Warn("check sealos and runtime error: %+v", err)
 					continue
 				}
 
-				a.Status = append(a.Status, rt)
-				a.Configs = append(a.Configs, *cfg)
+				newVersions := k8s.FetchK8sAllVersion(rt.RuntimeVersion)
+				for _, vv := range newVersions {
+					rt.RuntimeVersion = vv
+					a.Status = append(a.Status, rt)
+					a.Configs = append(a.Configs, *cfg)
+				}
 			}
 		}
 	}
@@ -144,7 +157,7 @@ func (a *Applier) Apply() error {
 				versions := a.Sync.Docker[localRuntime.CRIVersion]
 				sortList := cri.List(versions)
 				newVersion := sortList[len(sortList)-1]
-				klog.Infof("docker version is %s, docker using latest version: %s", localRuntime.CRIVersion, newVersion)
+				logger.Debug("docker version is %s, docker using latest version: %s", localRuntime.CRIVersion, newVersion)
 				localRuntime.CRIVersion = newVersion
 				localRuntime.CRIDockerd = criDockerVersion
 			case v1.CRIContainerd:
@@ -157,15 +170,9 @@ func (a *Applier) Apply() error {
 				versions := a.Sync.CRIO[kubeBigVersion]
 				sortList := cri.List(versions)
 				newVersion := sortList[len(sortList)-1]
-				klog.Infof("kube version is %s, crio using latest version: %s", rt.RuntimeVersion, newVersion)
+				logger.Debug("kube version is %s, crio using latest version: %s", rt.RuntimeVersion, newVersion)
 				localRuntime.CRIVersion = newVersion
 			}
-
-			newVersion, err := k8s.FetchFinalVersion(rt.RuntimeVersion)
-			if err != nil {
-				return fmt.Errorf("runtime is %s,runtime version is %s,get new version is error: %+v", rt.Runtime, rt.RuntimeVersion, err)
-			}
-			a.Status[i].RuntimeVersion = newVersion
 		default:
 			return fmt.Errorf("not found runtime,current version not support")
 		}

@@ -15,11 +15,10 @@
 package cmd
 
 import (
+	"github.com/cuisongliu/logger"
 	"github.com/labring-actions/runtime-ctl/pkg/apply"
 	"github.com/labring-actions/runtime-ctl/pkg/cri"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
-
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +27,7 @@ var defaultFile string
 var yamlEnable bool
 var applier *apply.Applier
 
-const printInfo = `All DefaultVersion:
+const printInfo = `All Version:
 	cri-docker: https://github.com/Mirantis/cri-dockerd/releases
 	docker: https://download.docker.com/linux/static/stable/
 	containerd: https://github.com/containerd/containerd/releases
@@ -47,7 +46,7 @@ var conversionCmd = &cobra.Command{
 		return applier.Apply()
 	},
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		klog.Info(printInfo)
+		logger.Info(printInfo)
 		applier = apply.NewApplier()
 		if err := applier.WithDefaultFile(defaultFile); err != nil {
 			return errors.WithMessage(err, "validate default error")
@@ -55,12 +54,12 @@ var conversionCmd = &cobra.Command{
 		if err := applier.WithConfigFiles(conversionFiles...); err != nil {
 			return errors.WithMessage(err, "validate config error")
 		}
-		klog.Info("begin sync cri all versions")
+		logger.Debug("begin sync cri all versions")
 		s := &cri.Sync{}
 		if err := s.Do(); err != nil {
 			return errors.WithMessage(err, "sync cri error")
 		}
-		klog.Info("sync cri all versions finished")
+		logger.Debug("sync cri all versions finished")
 
 		if err := applier.WithCRISync(s); err != nil {
 			return errors.WithMessage(err, "set sync cri error")

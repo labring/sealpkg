@@ -16,6 +16,7 @@ package v1
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -78,13 +79,16 @@ func Compare(v1, v2 string) bool {
 	} else if v1List[0] < v2List[0] {
 		return false
 	}
+
 	if v1List[1] > v2List[1] {
 		return true
 	} else if v1List[1] < v2List[1] {
 		return false
 	}
 	if len(v1List) == 3 && len(v2List) == 3 {
-		if v1List[2] >= v2List[2] {
+		intV1, _ := strconv.Atoi(v1List[2])
+		intV2, _ := strconv.Atoi(v2List[2])
+		if intV1 > intV2 {
 			return true
 		}
 		return false

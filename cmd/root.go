@@ -17,10 +17,13 @@ limitations under the License.
 package cmd
 
 import (
+	"github.com/cuisongliu/logger"
 	"os"
 
 	"github.com/spf13/cobra"
 )
+
+var debug bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -41,13 +44,11 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	cobra.OnInitialize(onBootOnDie)
+	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "enable debug logger")
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.runtime-ctl.yaml)")
+}
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+func onBootOnDie() {
+	logger.Cfg(debug, false)
 }

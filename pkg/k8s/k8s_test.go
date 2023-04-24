@@ -15,31 +15,15 @@ func TestFetchLatestVersion(t *testing.T) {
 		{
 			name: "default",
 			args: args{
-				kubeVersion: "v1.23",
+				kubeVersion: "1.23",
 			},
-			want:    "1.23.16",
-			wantErr: false,
-		},
-		{
-			name: "default",
-			args: args{
-				kubeVersion: "v1.23.4",
-			},
-			want:    "1.23.4",
-			wantErr: false,
-		},
-		{
-			name: "default",
-			args: args{
-				kubeVersion: "1.23.6",
-			},
-			want:    "1.23.6",
+			want:    "1.23.17",
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := FetchFinalVersion(tt.args.kubeVersion)
+			got, err := fetchVersion(tt.args.kubeVersion)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FetchFinalVersion() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -49,4 +33,9 @@ func TestFetchLatestVersion(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_fetchAllVersion(t *testing.T) {
+	c := fetchAllVersion("1.23.1")
+	t.Log(c)
 }

@@ -18,18 +18,18 @@ package cri
 
 import (
 	"github.com/PuerkitoBio/goquery"
+	"github.com/cuisongliu/logger"
+	"github.com/labring-actions/runtime-ctl/pkg/retry"
 	"github.com/labring-actions/runtime-ctl/pkg/utils"
 	v1 "github.com/labring-actions/runtime-ctl/types/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/client-go/util/retry"
-	"k8s.io/klog/v2"
 	"strings"
 )
 
 func FetchCRIOAllVersion() (map[string]sets.Set[string], error) {
 	const crioAddress = "https://cri-o.github.io/cri-o/"
 	versions := make(map[string]sets.Set[string])
-	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+	if err := retry.Retry(func() error {
 		data, err := utils.Request(crioAddress, "GET", []byte(""), 0)
 		if err != nil {
 			return err
@@ -69,7 +69,7 @@ func FetchCRIOAllVersion() (map[string]sets.Set[string], error) {
 		}
 		return nil
 	}); err != nil {
-		klog.Error("get docker version error: %s", err.Error())
+		logger.Error("get docker version error: %s", err.Error())
 		return nil, err
 	}
 	return versions, nil

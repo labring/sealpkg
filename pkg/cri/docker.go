@@ -16,12 +16,12 @@ package cri
 
 import (
 	"github.com/PuerkitoBio/goquery"
+	"github.com/cuisongliu/logger"
+	"github.com/labring-actions/runtime-ctl/pkg/retry"
 	"github.com/labring-actions/runtime-ctl/pkg/utils"
 	"github.com/labring-actions/runtime-ctl/pkg/version"
 	v1 "github.com/labring-actions/runtime-ctl/types/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/client-go/util/retry"
-	"k8s.io/klog/v2"
 	"strings"
 )
 
@@ -57,7 +57,7 @@ func FetchDockerVersion(kubeVersion string) (string, string) {
 func FetchDockerAllVersion() (map[string]sets.Set[string], error) {
 	fetchURL := "https://download.docker.com/linux/static/stable/x86_64/"
 	versions := make(map[string]sets.Set[string])
-	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+	if err := retry.Retry(func() error {
 		data, err := utils.Request(fetchURL, "GET", []byte(""), 0)
 		if err != nil {
 			return err
@@ -89,7 +89,7 @@ func FetchDockerAllVersion() (map[string]sets.Set[string], error) {
 		}
 		return nil
 	}); err != nil {
-		klog.Error("get docker version error: %s", err.Error())
+		logger.Error("get docker version error: %s", err.Error())
 		return nil, err
 	}
 	return versions, nil
