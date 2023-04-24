@@ -164,7 +164,8 @@ func (a *Applier) Apply() error {
 				localRuntime.CRIVersion = a.Configs[i].DefaultVersion.Containerd
 				containerdBigVersion := v1.ToBigVersion(a.Configs[i].DefaultVersion.Containerd)
 				if v1.Compare(kubeBigVersion, "1.26") && !v1.Compare(containerdBigVersion, "1.6") {
-					return fmt.Errorf("if kubernetes version gt 1.26 your containerd must be gt 1.6")
+					localRuntime.CRIVersion = ""
+					logger.Warn("if kubernetes version gt 1.26 your containerd must be gt 1.6")
 				}
 			case v1.CRICRIO:
 				versions := a.Sync.CRIO[kubeBigVersion]
@@ -179,9 +180,8 @@ func (a *Applier) Apply() error {
 		if localRuntime.CRIVersion == "" {
 			continue
 		}
-		a.Status[i] = localRuntime
+		statusList.Include = append(statusList.Include, localRuntime)
 	}
-	statusList.Include = a.Status
 	if a.Yaml {
 		actionYAML, err := yaml.Marshal(statusList)
 		if err != nil {

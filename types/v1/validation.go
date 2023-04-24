@@ -50,7 +50,7 @@ func CheckSealosAndRuntime(c *RuntimeAndCRI, vv *ComponentDefaultVersion) error 
 	if c.Runtime == "k8s" {
 		//kubernetes gt 1.26
 		for _, v := range c.RuntimeVersion {
-			if Compare(v, "v1.26") && !Compare(vv.Sealos, "v4.1.4") {
+			if Compare(v, "v1.26") && Compare("v4.1.3", vv.Sealos) {
 				// echo "INFO::skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)"
 				//  echo https://kubernetes.io/blog/2022/11/18/upcoming-changes-in-kubernetes-1-26/#cri-api-removal
 				return fmt.Errorf("skip $KUBE(kube>=1.26) when $SEALOS(sealos<=4.1.3)")
@@ -90,8 +90,9 @@ func Compare(v1, v2 string) bool {
 		intV2, _ := strconv.Atoi(v2List[2])
 		if intV1 > intV2 {
 			return true
+		} else if intV1 < intV2 {
+			return false
 		}
-		return false
 	}
 
 	return true

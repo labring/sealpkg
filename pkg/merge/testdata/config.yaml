@@ -14,7 +14,7 @@
 
 config:
   cri:
-    - crio
+    - containerd
   runtime: k8s
   runtimeVersion:
     - 1.27
