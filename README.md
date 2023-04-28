@@ -1,12 +1,3 @@
-# runtime-ctl
+# sealpkg
 
-goproxy
-
-https://ghproxy.com/
-
-## Usage
-
-runtime-ctl conversion  -f pkg/merge/testdata/config.yaml  -d pkg/merge/testdata/default.yaml
-
--f config yaml 
--d default yaml
+SealPkg is a packaging tool specifically designed for Sealos clusters. Its primary purpose is to integrate multiple components and package them into usable images, thereby simplifying and automating the deployment and management process of Sealos clusters. With SealPkg, users can easily build and distribute customized images containing the required components, speeding up deployment and increasing work efficiency. SealPkg also provides users with flexible configuration options to meet different scenarios and image-building requirements. In summary, SealPkg aims to help users manage Sealos cluster images more conveniently, improving their availability and stability.

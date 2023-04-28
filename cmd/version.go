@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/labring-actions/runtime-ctl/pkg/version"
+	"github.com/labring-actions/sealpkg/pkg/version"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/json"
@@ -17,7 +17,7 @@ func newVersionCmd() *cobra.Command {
 		Use:     "version",
 		Short:   "Print version info",
 		Args:    cobra.NoArgs,
-		Example: `runtime-ctl version`,
+		Example: `sealpkg version`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			//output default to be yaml
 			if output != "yaml" && output != "json" {

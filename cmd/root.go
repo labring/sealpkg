@@ -27,7 +27,7 @@ var debug bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "runtime-ctl",
+	Use:   "sealpkg",
 	Short: "ctl use to runtime",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:

@@ -1,4 +1,4 @@
-module github.com/labring-actions/runtime-ctl
+module github.com/labring-actions/sealpkg
 
 go 1.19
 

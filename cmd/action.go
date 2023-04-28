@@ -16,8 +16,8 @@ package cmd
 
 import (
 	"github.com/cuisongliu/logger"
-	"github.com/labring-actions/runtime-ctl/pkg/apply"
-	"github.com/labring-actions/runtime-ctl/pkg/cri"
+	"github.com/labring-actions/sealpkg/pkg/apply"
+	"github.com/labring-actions/sealpkg/pkg/cri"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

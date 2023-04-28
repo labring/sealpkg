@@ -17,10 +17,10 @@ package cri
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/cuisongliu/logger"
-	"github.com/labring-actions/runtime-ctl/pkg/retry"
-	"github.com/labring-actions/runtime-ctl/pkg/utils"
-	"github.com/labring-actions/runtime-ctl/pkg/version"
-	v1 "github.com/labring-actions/runtime-ctl/types/v1"
+	"github.com/labring-actions/sealpkg/pkg/retry"
+	"github.com/labring-actions/sealpkg/pkg/utils"
+	"github.com/labring-actions/sealpkg/pkg/version"
+	v1 "github.com/labring-actions/sealpkg/types/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"strings"
 )
