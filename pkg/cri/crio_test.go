@@ -17,6 +17,7 @@ limitations under the License.
 package cri
 
 import (
+	"github.com/labring/sealpkg/pkg/utils"
 	"testing"
 )
 
@@ -37,7 +38,7 @@ func TestFetchCRIOAllVersion(t *testing.T) {
 				t.Errorf("FetchCRIOAllVersion() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			list := List(got["1.27"])
+			list := utils.List(got["1.27"])
 			t.Logf("versions: %+v", got)
 			t.Logf("versions: %+v", list)
 		})

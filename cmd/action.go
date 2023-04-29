@@ -17,13 +17,12 @@ package cmd
 import (
 	"github.com/cuisongliu/logger"
 	"github.com/labring/sealpkg/pkg/apply"
-	"github.com/labring/sealpkg/pkg/cri"
+	"github.com/labring/sealpkg/pkg/sync"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-var conversionFiles []string
-var defaultFile string
+var file string
 var yamlEnable bool
 var applier *apply.Applier
 
@@ -48,14 +47,11 @@ var conversionCmd = &cobra.Command{
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info(printInfo)
 		applier = apply.NewApplier()
-		if err := applier.WithDefaultFile(defaultFile); err != nil {
-			return errors.WithMessage(err, "validate default error")
-		}
-		if err := applier.WithConfigFiles(conversionFiles...); err != nil {
+		if err := applier.WithConfigFiles(file); err != nil {
 			return errors.WithMessage(err, "validate config error")
 		}
 		logger.Debug("begin sync cri all versions")
-		s := &cri.Sync{}
+		s := &sync.Sync{}
 		if err := s.Do(); err != nil {
 			return errors.WithMessage(err, "sync cri error")
 		}
@@ -71,8 +67,7 @@ var conversionCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(conversionCmd)
-	conversionCmd.Flags().StringSliceVarP(&conversionFiles, "files", "f", []string{}, "config files")
-	conversionCmd.Flags().StringVarP(&defaultFile, "default", "d", "", "default file location")
+	conversionCmd.Flags().StringVarP(&file, "file", "f", "", "config files")
 	conversionCmd.Flags().BoolVar(&yamlEnable, "yaml", false, "print yaml")
 
 	// Here you will define your flags and configuration settings.

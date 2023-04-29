@@ -20,7 +20,8 @@ import (
 	"github.com/cuisongliu/logger"
 	"github.com/labring/sealpkg/pkg/cri"
 	"github.com/labring/sealpkg/pkg/k8s"
-	"github.com/labring/sealpkg/pkg/merge"
+	"github.com/labring/sealpkg/pkg/sync"
+	"github.com/labring/sealpkg/pkg/utils"
 	v1 "github.com/labring/sealpkg/types/v1"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -29,26 +30,18 @@ import (
 )
 
 type Applier struct {
-	Status      []v1.ComponentAndVersion
-	Configs     []v1.RuntimeConfig
-	DefaultFile string
-	Yaml        bool
-	Sync        *cri.Sync
+	Status  []v1.ComponentAndVersion
+	Configs []v1.RuntimeConfig
+	Yaml    bool
+	Sync    *sync.Sync
 }
 
 func NewApplier() *Applier {
 	return &Applier{}
 }
 
-func (a *Applier) WithDefaultFile(file string) error {
-	if file == "" {
-		return errors.New("file not set,please set file retry")
-	}
-	cfg, err := merge.Merge(file)
-	if err != nil {
-		return err
-	}
-	if err = v1.ValidationDefaultComponent(cfg.DefaultVersion); err != nil {
+func (a *Applier) defaultFile(cfg *v1.ComponentDefaultVersion) error {
+	if err := v1.ValidationDefaultComponent(cfg); err != nil {
 		return err
 	}
 	const printInfo = `All Default Version:
@@ -58,12 +51,11 @@ func (a *Applier) WithDefaultFile(file string) error {
 	crun: %s
 	runc: %s
 `
-	logger.Info(printInfo, cfg.DefaultVersion.Docker, cfg.DefaultVersion.Containerd, cfg.DefaultVersion.Sealos, cfg.DefaultVersion.Crun, cfg.DefaultVersion.Runc)
-	a.DefaultFile = file
+	logger.Info(printInfo, cfg.Docker, cfg.Containerd, cfg.Sealos, cfg.Crun, cfg.Runc)
 	return nil
 }
 
-func (a *Applier) WithCRISync(sync *cri.Sync) error {
+func (a *Applier) WithCRISync(sync *sync.Sync) error {
 	a.Sync = sync
 	return nil
 }
@@ -73,31 +65,23 @@ func (a *Applier) WithYaml(yamlEnable bool) error {
 	return nil
 }
 
-func (a *Applier) WithConfigFiles(files ...string) error {
-	if len(files) <= 0 {
-		return errors.New("files not set,please set retry")
-	}
-	validationFunc := func(index int, r *v1.RuntimeConfig) error {
-		if err := v1.ValidationConfigData(r.Config); err != nil {
-			return err
-		}
-		logger.Debug("validate index=%d config data and runtime success", index)
-		return nil
+func (a *Applier) WithConfigFiles(file string) error {
+	if file == "" || utils.IsFileExist(file) {
+		return errors.New("files not set or file is not exist,please set retry")
 	}
 	versions := sets.NewString()
 	var cfg *v1.RuntimeConfig
 	var err error
-	for i, f := range files {
-		cfg, err = merge.Merge(f, a.DefaultFile)
-		if err != nil {
-			return err
-		}
-		if err = validationFunc(i, cfg); err != nil {
-			return fmt.Errorf("file is %s is validation error: %+v", f, err)
-		}
-		if cfg.Config.CRI == nil || len(cfg.Config.CRI) == 0 {
-			cfg.Config.CRI = []string{v1.CRIContainerd, v1.CRIDocker, v1.CRICRIO}
-		}
+	cfg, err = v1.ReadFileToObject(file)
+	if err != nil {
+		return err
+	}
+	if err = v1.ValidationConfigData(cfg.Config); err != nil {
+		return fmt.Errorf("file is %s is validation error: %+v", file, err)
+	}
+	logger.Debug("validate config data and runtime success")
+	if cfg.Config.CRI == nil || len(cfg.Config.CRI) == 0 {
+		cfg.Config.CRI = []string{v1.CRIContainerd, v1.CRIDocker, v1.CRICRIO}
 	}
 	const printInfo = `All Config:
 	cri: %s
@@ -118,7 +102,7 @@ func (a *Applier) WithConfigFiles(files ...string) error {
 					Runtime:        cfg.Config.Runtime,
 					RuntimeVersion: v,
 				}
-				rt.CRIRuntime, rt.CRIRuntimeVersion = cri.GetCRIRuntime(r, *cfg.DefaultVersion)
+				rt.CRIRuntime, rt.CRIRuntimeVersion = cri.DetectCRIRuntime(r, *cfg.DefaultVersion)
 				rt.Sealos = cfg.DefaultVersion.Sealos
 				if err = v1.CheckSealosAndRuntime(cfg.Config, cfg.DefaultVersion); err != nil {
 					logger.Warn("check sealos and runtime error: %+v", err)
@@ -155,7 +139,7 @@ func (a *Applier) Apply() error {
 					localRuntime.CRIVersion = v1.ToBigVersion(cfgDocker)
 				}
 				versions := a.Sync.Docker[localRuntime.CRIVersion]
-				sortList := cri.List(versions)
+				sortList := utils.List(versions)
 				newVersion := sortList[len(sortList)-1]
 				logger.Debug("docker version is %s, docker using latest version: %s", localRuntime.CRIVersion, newVersion)
 				localRuntime.CRIVersion = newVersion
@@ -169,7 +153,7 @@ func (a *Applier) Apply() error {
 				}
 			case v1.CRICRIO:
 				versions := a.Sync.CRIO[kubeBigVersion]
-				sortList := cri.List(versions)
+				sortList := utils.List(versions)
 				newVersion := sortList[len(sortList)-1]
 				logger.Debug("kube version is %s, crio using latest version: %s", rt.RuntimeVersion, newVersion)
 				localRuntime.CRIVersion = newVersion

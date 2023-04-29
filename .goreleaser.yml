@@ -30,7 +30,48 @@ snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
+  use: github
   filters:
     exclude:
-      - '^docs:'
       - '^test:'
+      - '^chore'
+      - 'merge conflict'
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: Dependency updates
+      regexp: '^.*?(feat|fix)\(deps\)!?:.+$'
+      order: 300
+    - title: 'New Features'
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 100
+    - title: 'Security updates'
+      regexp: '^.*?sec(\([[:word:]]+\))??!?:.+$'
+      order: 150
+    - title: 'Bug fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 200
+    - title: 'Documentation updates'
+      regexp: ^.*?doc(\([[:word:]]+\))??!?:.+$
+      order: 400
+    - title: 'Build process updates'
+      regexp: ^.*?build(\([[:word:]]+\))??!?:.+$
+      order: 400
+    - title: Other work
+      order: 9999
+
+
+release:
+  prerelease: auto
+  header: |
+    ## labring: sealpkg {{ .Tag }}
+    We are excited to present to you the latest tool from labring: sealpkg {{ .Tag }}! 
+
+  footer: |
+    **Full Changelog**: https://github.com/{{ .Env.USERNAME }}/sealpkg/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+    * * *
+    
+    Thank you for your interest and support in labring  and sealpkg! If you encounter any problems during use, please feel free to submit an issue in our [GitHub repository](https://github.com/labring/sealpkg). We will resolve your issue as soon as possible.

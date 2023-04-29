@@ -1,7 +1,7 @@
 /*
 Copyright 2023 cuisongliu@qq.com.
 
-Licensed under the Apache License, DefaultVersion 2.0 (the "License");
+Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
@@ -14,19 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cri
+package utils
 
-import v1 "github.com/labring/sealpkg/types/v1"
+import "os"
 
-func GetCRIRuntime(cri string, component v1.ComponentDefaultVersion) (string, string) {
-	switch cri {
-	case "docker":
-		return "", ""
-	case "crio":
-		return "crun", component.Crun
-	case "containerd":
-		return "runc", component.Runc
-	default:
-		return "runc", component.Runc
-	}
+func IsFileExist(filename string) bool {
+	_, err := os.Stat(filename)
+	return !os.IsNotExist(err)
 }
