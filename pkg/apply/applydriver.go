@@ -66,7 +66,7 @@ func (a *Applier) WithYaml(yamlEnable bool) error {
 }
 
 func (a *Applier) WithConfigFiles(file string) error {
-	if file == "" || utils.IsFileExist(file) {
+	if file == "" || !utils.IsFileExist(file) {
 		return errors.New("files not set or file is not exist,please set retry")
 	}
 	versions := sets.NewString()
