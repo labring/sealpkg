@@ -10,8 +10,6 @@ bot:
   username: sealos-ci-robot
 repo:
   org: false
-  name: sealos-ci-robot/sealpkg
-  fork: labring/sealpkg
 
 release:
   retry: 15s
