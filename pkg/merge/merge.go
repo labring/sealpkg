@@ -16,7 +16,7 @@ package merge
 
 import (
 	"github.com/imdario/mergo"
-	"github.com/labring-actions/sealpkg/types/v1"
+	"github.com/labring/sealpkg/types/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"os"
 )

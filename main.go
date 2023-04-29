@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/labring-actions/sealpkg/cmd"
+import "github.com/labring/sealpkg/cmd"
 
 func main() {
 	cmd.Execute()

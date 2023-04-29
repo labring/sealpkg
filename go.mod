@@ -1,4 +1,4 @@
-module github.com/labring-actions/sealpkg
+module github.com/labring/sealpkg
 
 go 1.19
 

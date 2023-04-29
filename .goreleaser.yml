@@ -15,7 +15,7 @@ builds:
       - amd64
       - arm64
     ldflags:
-      - -s -w -X github.com/labring-actions/sealpkg/pkg/cmd.Version={{.Version}} -X github.com/labring-actions/sealpkg/pkg/cmd.Githash={{.ShortCommit}} -X github.com/labring-actions/sealpkg/pkg/cmd.Buildstamp={{.Date}} -X github.com/labring-actions/sealpkg/cmd.Author=goreleaser
+      - -s -w -X github.com/labring/sealpkg/pkg/cmd.Version={{.Version}} -X github.com/labring/sealpkg/pkg/cmd.Githash={{.ShortCommit}} -X github.com/labring/sealpkg/pkg/cmd.Buildstamp={{.Date}} -X github.com/labring/sealpkg/cmd.Author=goreleaser
 
 #archives:
 #  - replacements:

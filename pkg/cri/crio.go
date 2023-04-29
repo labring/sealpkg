@@ -19,9 +19,9 @@ package cri
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/cuisongliu/logger"
-	"github.com/labring-actions/sealpkg/pkg/retry"
-	"github.com/labring-actions/sealpkg/pkg/utils"
-	v1 "github.com/labring-actions/sealpkg/types/v1"
+	"github.com/labring/sealpkg/pkg/retry"
+	"github.com/labring/sealpkg/pkg/utils"
+	v1 "github.com/labring/sealpkg/types/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"strings"
 )

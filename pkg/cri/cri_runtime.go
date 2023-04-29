@@ -16,7 +16,7 @@ limitations under the License.
 
 package cri
 
-import v1 "github.com/labring-actions/sealpkg/types/v1"
+import v1 "github.com/labring/sealpkg/types/v1"
 
 func GetCRIRuntime(cri string, component v1.ComponentDefaultVersion) (string, string) {
 	switch cri {
