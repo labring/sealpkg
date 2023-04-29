@@ -16,31 +16,20 @@ limitations under the License.
 
 package cri
 
-import (
-	"github.com/labring/sealpkg/pkg/utils"
-	"testing"
-)
+import v1 "github.com/labring/sealpkg/types/v1"
 
-func TestFetchAllVersion(t *testing.T) {
-	tests := []struct {
-		name    string
-		wantErr bool
-	}{
-		{
-			name:    "default",
-			wantErr: false,
-		},
+func DetectCRIRuntime(cri string, versions v1.ComponentDefaultVersion) (string, string) {
+	switch cri {
+	case "docker":
+		return "", ""
+	case "crio":
+		return "crun", versions.Crun
+	case "containerd":
+		return "runc", versions.Runc
+	default:
+		return "runc", versions.Runc
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := FetchDockerAllVersion()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("FetchDockerAllVersion() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			list := utils.List(got["20.10"])
-			t.Logf("versions: %+v", got)
-			t.Logf("versions: %+v", list)
-		})
-	}
+}
+
+type ContainerRuntime interface {
 }
