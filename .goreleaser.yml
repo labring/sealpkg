@@ -70,7 +70,7 @@ release:
     We are excited to present to you the latest tool from labring: sealpkg {{ .Tag }}! 
 
   footer: |
-    **Full Changelog**: https://github.com/{{ .Env.USERNAME }}/sealpkg/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/{{ .Env.USERNAME }}/{{ .ProjectName }}/compare/{{ .PreviousTag }}...{{ .Tag }}
 
     * * *
     
