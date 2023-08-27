@@ -1,4 +1,4 @@
-name: Github Rebot for Sealos
+name: Github Robot for Sealos
 on:
   issue_comment:
     types:
